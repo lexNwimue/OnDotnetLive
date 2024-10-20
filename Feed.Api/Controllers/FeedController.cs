@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 public class FeedController(HttpClient _httpClient) : ControllerBase
 {
     [HttpGet("{userId}")]
-    public async Task<IActionResult> GetUserFeed(string userId)
+    public async Task<IActionResult> GetFeedV1(string userId)
     {
         // Create tasks for each service call
         var postsTask = _httpClient.GetAsync($"https://post-service/api/posts/user/{userId}");
@@ -39,10 +39,9 @@ public class FeedController(HttpClient _httpClient) : ControllerBase
 
 
     [HttpGet]
-    public async Task GetFeed(Dto dto)
+    public async Task GetFeedV2(Dto dto)
     {
         var feed = await feedService.GetFeed(dto);
         return Ok(feed);
-
     }
 }
