@@ -21,10 +21,28 @@ public class FeedController(HttpClient _httpClient) : ControllerBase
         return Ok(feed);
     }
 
+
+
+
+
+
+
+
+
+
     [HttpPost("update")]
     public async Task CreateOrUpdateFeed(Dto dto)
     {
         await feedService.CreateOrUpdateFeed(dto);
+
+    }
+
+
+    [HttpGet]
+    public async Task GetFeed(Dto dto)
+    {
+        var feed = await feedService.GetFeed(dto);
+        return Ok(feed);
 
     }
 }
