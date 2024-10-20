@@ -15,35 +15,34 @@ public class OutboxProcessor : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        while (!stoppingToken.IsCancellationRequested)
+
+        using (var scope = _serviceProvider.CreateScope())
         {
-            using (var scope = _serviceProvider.CreateScope())
+            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            using var transaction = dbContext.Database.BeginTransactionAsync();
+
+
+            var pendingMessages = await dbContext.OutboxMessages
+                .OrderBy(m => m.CreatedAt)
+                .Take(100)
+                .ToListAsync(stoppingToken);
+
+            foreach (var message in pendingMessages)
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                using var transaction = dbContext.Database.BeginTransactionAsync();
+                var payload = JsonSerializer.Serialize(message.Payload);
 
+                await _publishEndpoint.Publish(payload);
 
-                var pendingMessages = await dbContext.OutboxMessages
-                    .OrderBy(m => m.CreatedAt)
-                    .Take(100)
-                    .ToListAsync(stoppingToken);
-
-                foreach (var message in pendingMessages)
-                {
-                    var payload = JsonSerializer.Serialize(message.Payload);
-
-                    await _publishEndpoint.Publish(payload);
-
-                    // Remove the message from the outbox after successful publish
-                    // Or you could update the status to processed if you wish
-                    dbContext.OutboxMessages.Remove(message);
-                    await dbContext.SaveChangesAsync(stoppingToken);
-                    await transaction.CommitAsync();
-                }
+                // Remove the message from the outbox after successful publish
+                // Or you could update the status to processed if you wish
+                message.IsProcessed = true;
+                await dbContext.SaveChangesAsync(stoppingToken);
+                await transaction.CommitAsync();
             }
-
-            // Wait for a short interval before checking again
-            await Task.Delay(10000, stoppingToken);
         }
+
+        // Wait for a short interval before checking again
+        await Task.Delay(10000, stoppingToken);
+
     }
 }
