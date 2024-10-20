@@ -1,6 +1,9 @@
 using MassTransit;
+using Post.API.Processors;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddHostedService<OutboxProcessor>();
 
 builder.Services.AddMassTransit(busConfigurator =>
 {
