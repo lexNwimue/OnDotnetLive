@@ -11,14 +11,12 @@ public class FeedController(HttpClient _httpClient) : ControllerBase
         // Create tasks for each service call
         var postsTask = _httpClient.GetAsync($"https://post-service/api/posts/user/{userId}");
         var commentsTask = _httpClient.GetAsync($"https://comment-service/api/comments/user/{userId}");
-        var repliesTask = _httpClient.GetAsync($"https://reply-service/api/replies/user/{userId}");
 
-        await Task.WhenAll(postsTask, commentsTask, repliesTask);
+        await Task.WhenAll(postsTask, commentsTask);
         var posts = await postsTask;
         var comments = await commentsTask;
-        var replies = await repliesTask;
 
-        var feed = FeedBuilder.BuildFeed(posts, comments, replies);
+        var feed = FeedBuilder.BuildFeed(posts, comments);
 
         return Ok(feed);
     }
