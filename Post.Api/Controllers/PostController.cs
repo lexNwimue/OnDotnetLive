@@ -1,33 +1,19 @@
+
 using Microsoft.AspNetCore.Mvc;
 
-namespace Post.Api.Controllers
+[ApiController]
+[Route("api/[controller]")]
+public class PostController(HttpClient _httpClient, AppDbContext _dbContext) : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class PostController : ControllerBase
+    [HttpPost]
+    public async Task<IActionResult> CreatePost([FromBody] PostDto dto)
     {
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
+        await _dbContext.Posts.AddAsync(dto);
+        await _dbContext.SaveChangesAsync();
 
-        private readonly ILogger<PostController> _logger;
+        // Call the feed service to update the feeds
+        await _httpClient.PostAsJsonAsync("https://feed-service/api/feed/update", dto);
 
-        public PostController(ILogger<PostController> logger)
-        {
-            _logger = logger;
-        }
-
-        [HttpGet]
-        public IEnumerable<WeatherForecast> Get()
-        {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
-        }
+        return CreatedAtAction(nameof(CreatePost), new { id = dto.Id }, dto);
     }
 }
