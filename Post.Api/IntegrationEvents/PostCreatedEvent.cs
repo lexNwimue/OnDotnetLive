@@ -9,6 +9,7 @@ namespace Comment.API.IntegrationEvents
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Content { get; set; }
         public Guid PostId { get; set; }
+        public string EventType { get; set; } = "PostCreated";
         public Guid UserId { get; set; }
         public string? Type { get; set; } = "Post";
     }
