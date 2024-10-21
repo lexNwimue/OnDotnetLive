@@ -16,13 +16,13 @@ namespace Newsfeed.API.IntegrationEvents.Consumers
         {
             var payload = consumerContext.Message;
 
-            //// Implement Idempotency
-            //var existingPost = await _dbContext.Feed.Find(feed => feed.PostId == payload.PostId);
-            //if (existingPost != null)
-            //{
-            //    Console.WriteLine($"Post {existingPost.PostId} already processed");
-            //    return;
-            //}
+            // Implement Idempotency??
+            var existingPost = await _dbContext.Feed.Find(feed => feed.PostId == payload.PostId);
+            if (existingPost != null)
+            {
+                Console.WriteLine($"Post {existingPost.PostId} already processed");
+                return;
+            }
 
             // Process event as needed
             var dto = context.Message;
