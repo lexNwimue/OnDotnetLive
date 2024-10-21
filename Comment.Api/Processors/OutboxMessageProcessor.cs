@@ -23,8 +23,9 @@ public class OutboxProcessor : BackgroundService
 
 
             var pendingMessages = await dbContext.OutboxMessages
+                .Where(x => x.IsProcessed == false)
                 .OrderBy(m => m.CreatedAt)
-                .Take(100)
+                .Take(1000)
                 .ToListAsync(stoppingToken);
 
             foreach (var message in pendingMessages)
@@ -35,6 +36,7 @@ public class OutboxProcessor : BackgroundService
 
                 // Remove the message from the outbox after successful publish
                 // Or you could update the status to processed if you wish
+
                 message.IsProcessed = true;
                 await dbContext.SaveChangesAsync(stoppingToken);
                 await transaction.CommitAsync();

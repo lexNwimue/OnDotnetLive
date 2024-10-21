@@ -27,6 +27,8 @@ public class CommentController(HttpClient _httpClient, AppDbContext _dbContext, 
             PostId = dto.PostId,
             UserId = dto.UserId,
         };
+        //await _publishEndpoint.Publish(commentCreatedEvent);
+
         var outboxMessage = new OutboxMessage
         {
             Id = Guid.NewGuid(),
@@ -39,7 +41,6 @@ public class CommentController(HttpClient _httpClient, AppDbContext _dbContext, 
         await transaction.CommitAsync();
 
 
-        //await _publishEndpoint.Publish(commentCreatedEvent);
 
 
         return CreatedAtAction(nameof(CreateComment), new { id = dto.Id }, dto);
